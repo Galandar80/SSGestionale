@@ -78,3 +78,4 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
 "# GestionaleAssociazioneFacile1.1" 
 "# AssociazioneGestionale" 
 "# supergestionale" 
+"# SSuperGestionale" 
