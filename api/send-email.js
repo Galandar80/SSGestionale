@@ -1,6 +1,17 @@
 const nodemailer = require('nodemailer');
+const { createClient } = require('@supabase/supabase-js');
 
 module.exports = async (req, res) => {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceRoleKey) {
+    console.error('Variabili d'ambiente Supabase non configurate!');
+    return res.status(500).json({ success: false, message: 'Configurazione Supabase mancante nel server.' });
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
   if (req.method === 'OPTIONS') {
     // Gestisce le richieste preflight CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -75,6 +86,33 @@ module.exports = async (req, res) => {
         await new Promise(resolve => setTimeout(resolve, DELAY_MS));
       }
     }
+
+    // Logica per salvare l'email nello storico di Supabase
+    const saveEmailToHistory = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('sent_emails')
+          .insert({
+            sender_email: process.env.EMAIL_USER,
+            recipients: recipients, // Array di stringhe
+            subject: subject,
+            html_content: htmlContent,
+            status: errors.length > 0 ? 'partial_success' : 'sent',
+            errors: errors.length > 0 ? errors : null, // Salva gli errori solo se presenti
+          });
+
+        if (error) {
+          console.error('Errore nel salvataggio storico email su Supabase:', error);
+        } else {
+          console.log('Email salvata nello storico Supabase:', data);
+        }
+      } catch (dbError) {
+        console.error('Errore critico durante il salvataggio storico email:', dbError);
+      }
+    };
+
+    // Chiamata la funzione per salvare nello storico (non blocca la risposta al client)
+    saveEmailToHistory();
 
     if (errors.length > 0) {
       return res.status(500).json({
