@@ -25,6 +25,14 @@ module.exports = async (req, res) => {
   }
 
   try {
+    console.log('Inizializzazione transporter email con:');
+    console.log('SMTP_HOST:', process.env.SMTP_HOST);
+    console.log('SMTP_PORT:', process.env.SMTP_PORT);
+    console.log('EMAIL_USER:', process.env.EMAIL_USER);
+    // Non loggare mai la password reale per sicurezza, ma puoi loggare se è definita
+    console.log('EMAIL_PASS definita:', !!process.env.EMAIL_PASS);
+    console.log('SMTP_SECURE:', process.env.SMTP_SECURE);
+
     let transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -74,7 +82,8 @@ module.exports = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Errore del server email (Vercel Function):', error);
+    // Logga l'intero oggetto errore per una diagnostica completa
+    console.error('Errore generale del server email (Vercel Function):', error);
     res.status(500).json({ success: false, message: 'Errore interno del server email.' });
   }
 }; 
