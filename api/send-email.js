@@ -46,19 +46,33 @@ module.exports = async (req, res) => {
     const results = [];
     const errors = [];
 
-    for (const recipient of recipients) {
-      try {
-        let info = await transporter.sendMail({
-          from: process.env.EMAIL_USER, 
-          to: recipient,
-          subject: subject,
-          html: htmlContent,
-        });
-        console.log(`Email inviata a ${recipient}: %s`, info.messageId);
-        results.push({ email: recipient, status: 'sent' });
-      } catch (error) {
-        console.error(`Errore nell'invio a ${recipient}:`, error);
-        errors.push({ email: recipient, error: error.message });
+    const CHUNK_SIZE = 20; // Numero di email per blocco
+    const DELAY_MS = 5000; // 5 secondi di ritardo tra i blocchi
+
+    for (let i = 0; i < recipients.length; i += CHUNK_SIZE) {
+      const chunk = recipients.slice(i, i + CHUNK_SIZE);
+      console.log(`Inviando blocco ${Math.floor(i / CHUNK_SIZE) + 1}/${Math.ceil(recipients.length / CHUNK_SIZE)} (email da ${i + 1} a ${Math.min(i + CHUNK_SIZE, recipients.length)})...`);
+
+      for (const recipient of chunk) {
+        try {
+          let info = await transporter.sendMail({
+            from: process.env.EMAIL_USER, 
+            to: recipient,
+            subject: subject,
+            html: htmlContent,
+          });
+          console.log(`Email inviata a ${recipient}: %s`, info.messageId);
+          results.push({ email: recipient, status: 'sent' });
+        } catch (error) {
+          console.error(`Errore nell'invio a ${recipient}:`, error);
+          errors.push({ email: recipient, error: error.message });
+        }
+      }
+
+      // Se non è l'ultimo blocco, attendi prima di inviare il prossimo
+      if (i + CHUNK_SIZE < recipients.length) {
+        console.log(`Attesa di ${DELAY_MS / 1000} secondi prima del prossimo blocco...`);
+        await new Promise(resolve => setTimeout(resolve, DELAY_MS));
       }
     }
 
