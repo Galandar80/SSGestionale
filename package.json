@@ -2,9 +2,8 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"npm run dev --prefix email-service\"",
+    "dev": "vite",
     "build": "tsc -b && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -64,7 +63,8 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.3",
     "xlsx": "^0.18.5",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "nodemailer": "^6.9.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",
